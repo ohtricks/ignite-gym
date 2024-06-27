@@ -6,6 +6,7 @@ module.exports = function(api) {
       [
         'module-resolver',
         {
+          extensions: ['.js', '.jsx', '.es', '.es6', '.mjs', '.ts', '.tsx', '.svg', '.png', '.cjs'],
           root: ['./src'],
           alias: {
             '@dtos': './src/dtos',
