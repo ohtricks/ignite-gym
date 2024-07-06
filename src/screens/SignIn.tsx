@@ -1,4 +1,4 @@
-import { VStack, Image, Text, Center, Heading, View, ScrollView } from "native-base";
+import { VStack, Image, Text, Center, Heading, View, ScrollView, useToast } from "native-base";
 
 import BackgroundImg from '@assets/background.png';
 import Logo from '@assets/logo.svg';
@@ -10,6 +10,9 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
+import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
+import { useState } from "react";
 
 const signInSchema = yup.object({
     email: yup.string().required('E-mail obrigatório.').email('E-mail inválido.'),
@@ -19,7 +22,11 @@ const signInSchema = yup.object({
 type FormDataProps = yup.InferType<typeof signInSchema>;
 
 export function SignIn() {
+    const [ isLoading, setIsLoading ] = useState(false);
+    const { user, signIn } = useAuth();
     const navigation = useNavigation<AuthNavigatorRoutesProps>();
+    const toast = useToast();
+
     const { control, handleSubmit, formState: { errors }} = useForm<FormDataProps>({
         resolver: yupResolver(signInSchema),
         defaultValues: {
@@ -31,8 +38,23 @@ export function SignIn() {
         navigation.navigate('signUp');
     }
 
-    function handleSingIn(data: FormDataProps){
-        console.log(data);
+    async function handleSingIn({email, password}: FormDataProps){
+        try {
+            setIsLoading(true);
+            await signIn(email, password);
+
+        } catch (error) {
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : 'Não foi possivel entrar. Tente novamente mais tarde';
+            
+            toast.show({
+                title,
+                placement: 'top',
+                bgColor: 'red.500'
+            });
+
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -60,6 +82,7 @@ export function SignIn() {
                         <Controller 
                             control={control}
                             name="email"
+                            rules={{required: 'Informe o e-mail'}}
                             render={({field: {onChange, value}}) => (
                                 <Input 
                                     placeholder="E-mail"
@@ -73,6 +96,7 @@ export function SignIn() {
                         <Controller 
                             control={control}
                             name="password"
+                            rules={{required: 'Informe a senha'}}
                             render={({field: {onChange, value}}) => (
                                 <Input 
                                     placeholder="Senha"
@@ -82,7 +106,8 @@ export function SignIn() {
                             )}
                         />
                         
-                        <Button title="Entrar" onPress={handleSubmit(handleSingIn)} />
+                        <Button title="Entrar" onPress={handleSubmit(handleSingIn)}
+                            isLoading={isLoading} />
                     </Center>
                 </View>
                 <Center mb={10}>
