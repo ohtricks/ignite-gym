@@ -13,9 +13,9 @@ import ProfileSvg from '@assets/profile.svg';
 
 type AppRoutes = {
     home: undefined;
+    exercise: {exerciseId: string};
     profile: undefined;
     history: undefined;
-    exercise: undefined;
 };
 
 export type AppNavigatorRoutesProps = BottomTabNavigationProp<AppRoutes>;
